@@ -26,27 +26,52 @@ func NewLink() *Link {
 
 	link.sheet = sheet
 	link.anims = make(map[string][]pixel.Rect)
-	link.anims["link_stand"] = []pixel.Rect{pixel.R(30, 360, 60, 390)}
+	link.anims["stand"] = []pixel.Rect{pixel.R(30, 360, 60, 390)}
 
-	link.anims["link_down"] = []pixel.Rect{pixel.R(30, 330, 60, 360),
+	link.anims["walk_down"] = []pixel.Rect{pixel.R(30, 330, 60, 360),
 		pixel.R(60, 330, 90, 360),
 		pixel.R(90, 330, 120, 360),
 		pixel.R(120, 330, 150, 360)}
 
-	link.anims["link_up"] = []pixel.Rect{pixel.R(0, 240, 30, 270),
+	link.anims["walk_up"] = []pixel.Rect{pixel.R(0, 240, 30, 270),
 		pixel.R(30, 240, 60, 270),
 		pixel.R(60, 240, 90, 270),
 		pixel.R(90, 240, 120, 270)}
 
-	link.anims["link_left"] = []pixel.Rect{pixel.R(240, 360, 262, 390),
+	link.anims["walk_left"] = []pixel.Rect{pixel.R(240, 360, 262, 390),
 		pixel.R(262, 360, 287, 390),
 		pixel.R(287, 360, 312, 390),
 		pixel.R(310, 360, 337, 390)}
 
-	link.anims["link_right"] = []pixel.Rect{pixel.R(240, 240, 270, 270),
+	link.anims["walk_right"] = []pixel.Rect{pixel.R(240, 240, 270, 270),
 		pixel.R(270, 240, 300, 270),
 		pixel.R(300, 240, 330, 270),
 		pixel.R(330, 240, 360, 270)}
+
+	link.anims["attack_down"] = []pixel.Rect{pixel.R(0, 270, 30, 300),
+		pixel.R(30, 270, 60, 300),
+		pixel.R(60, 270, 90, 303),
+		pixel.R(90, 270, 115, 303),
+		pixel.R(115, 270, 145, 303),
+		pixel.R(145, 270, 180, 303)}
+
+	link.anims["attack_up"] = []pixel.Rect{pixel.R(0, 180, 30, 210),
+		pixel.R(30, 180, 60, 210),
+		pixel.R(60, 180, 90, 210),
+		pixel.R(90, 180, 115, 210),
+		pixel.R(115, 180, 145, 210)}
+
+	link.anims["attack_left"] = []pixel.Rect{pixel.R(240, 270, 270, 300),
+		pixel.R(270, 270, 300, 300),
+		pixel.R(300, 270, 330, 300),
+		pixel.R(330, 270, 360, 300),
+		pixel.R(360, 270, 390, 300)}
+
+	link.anims["attack_right"] = []pixel.Rect{pixel.R(240, 180, 270, 210),
+		pixel.R(270, 180, 300, 210),
+		pixel.R(300, 180, 330, 210),
+		pixel.R(330, 180, 360, 210),
+		pixel.R(360, 180, 390, 210)}
 
 	link.pos = pixel.V(130, 130)
 	link.currFrame = pixel.R(0, 0, 0, 0)
@@ -58,11 +83,15 @@ func NewLink() *Link {
 }
 
 const (
-	LEFT = iota + 1
-	RIGHT
-	DOWN
-	UP
+	WALK_LEFT = iota + 1
+	WALK_RIGHT
+	WALK_DOWN
+	WALK_UP
 	STAND
+	ATTACK_UP
+	ATTACK_DOWN
+	ATTACK_LEFT
+	ATTACK_RIGHT
 )
 
 func (link *Link) setCurrentFrame(frameType int) {
@@ -77,6 +106,9 @@ func (link *Link) setCurrentFrame(frameType int) {
 			link.tick = 0
 			if link.frameCount == len(link.anims[frameKey])-1 {
 				link.frameCount = 0
+				if link.lastFrameType == ATTACK_UP || link.lastFrameType == ATTACK_DOWN || link.lastFrameType == ATTACK_LEFT || link.lastFrameType == ATTACK_RIGHT {
+					link.lastFrameType = STAND
+				}
 			} else {
 				link.frameCount++
 			}
@@ -90,60 +122,83 @@ func (link *Link) setCurrentFrame(frameType int) {
 
 func getFrameKey(frameType int) string {
 	switch frameType {
-	case LEFT:
-		return "link_left"
-	case RIGHT:
-		return "link_right"
-	case DOWN:
-		return "link_down"
-	case UP:
-		return "link_up"
+	case WALK_LEFT:
+		return "walk_left"
+	case WALK_RIGHT:
+		return "walk_right"
+	case WALK_DOWN:
+		return "walk_down"
+	case WALK_UP:
+		return "walk_up"
 	case STAND:
-		return "link_stand"
+		return "stand"
+	case ATTACK_UP:
+		return "attack_up"
+	case ATTACK_DOWN:
+		return "attack_down"
+	case ATTACK_LEFT:
+		return "attack_left"
+	case ATTACK_RIGHT:
+		return "attack_right"
 	}
+
 	return "link_stand"
 }
 
 func (link *Link) update(win *pixelgl.Window, objects []*Object) {
 	frameType := STAND
-	relPos := pixel.ZV
-	newPos := link.pos
-	if win.Pressed(pixelgl.KeyLeft) {
-		newPos.X--
-		relPos.X--
-		frameType = LEFT
-	}
-	if win.Pressed(pixelgl.KeyRight) {
-		newPos.X++
-		relPos.X++
-		frameType = RIGHT
-	}
-	if win.Pressed(pixelgl.KeyUp) {
-		newPos.Y++
-		relPos.Y++
-		frameType = UP
-	}
-	if win.Pressed(pixelgl.KeyDown) {
-		newPos.Y--
-		relPos.Y--
-		frameType = DOWN
-	}
-	if relPos.X == 0 && relPos.Y == 0 {
-		frameType = STAND
-	}
 
-	overlapped := false
-	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
-
-	for _, o := range objects {
-		if overlap(o.bounds, linkBounds) {
-			overlapped = true
-			break
+	if link.lastFrameType != ATTACK_UP && link.lastFrameType != ATTACK_DOWN && link.lastFrameType != ATTACK_LEFT && link.lastFrameType != ATTACK_RIGHT {
+		relPos := pixel.ZV
+		newPos := link.pos
+		actionFrameType := ATTACK_UP
+		if win.Pressed(pixelgl.KeyLeft) {
+			newPos.X--
+			relPos.X--
+			frameType = WALK_LEFT
+			actionFrameType = ATTACK_LEFT
 		}
-	}
+		if win.Pressed(pixelgl.KeyRight) {
+			newPos.X++
+			relPos.X++
+			frameType = WALK_RIGHT
+			actionFrameType = ATTACK_RIGHT
+		}
+		if win.Pressed(pixelgl.KeyUp) {
+			newPos.Y++
+			relPos.Y++
+			frameType = WALK_UP
+			actionFrameType = ATTACK_UP
+		}
+		if win.Pressed(pixelgl.KeyDown) {
+			newPos.Y--
+			relPos.Y--
+			frameType = WALK_DOWN
+			actionFrameType = ATTACK_DOWN
+		}
+		if relPos.X == 0 && relPos.Y == 0 {
+			frameType = STAND
+		}
 
-	if !overlapped {
-		link.pos = newPos
+		if win.JustPressed(pixelgl.KeySpace) {
+			frameType = actionFrameType
+		}
+
+		overlapped := false
+		linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
+
+		for _, o := range objects {
+			if overlap(o.bounds, linkBounds) {
+				overlapped = true
+				break
+			}
+		}
+
+		if !overlapped {
+			link.pos = newPos
+		}
+	} else {
+		frameType = link.lastFrameType
 	}
 
 	link.setCurrentFrame(frameType)
