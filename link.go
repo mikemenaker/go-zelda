@@ -1,14 +1,10 @@
 package main
 
 import (
-	"image"
-	"os"
-
 	_ "image/png"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"fmt"
 )
 
 type Link struct {
@@ -52,7 +48,7 @@ func NewLink() *Link {
 		pixel.R(300, 240, 330, 270),
 		pixel.R(330, 240, 360, 270)}
 
-	link.pos = pixel.ZV
+	link.pos = pixel.V(130, 130)
 	link.currFrame = pixel.R(0, 0, 0, 0)
 
 	link.frameCount = 0
@@ -108,53 +104,46 @@ func getFrameKey(frameType int) string {
 	return "link_stand"
 }
 
-func (link *Link) update(win *pixelgl.Window, objBound pixel.Rect, objPos pixel.Vec) {
-	//fmt.Println(link.pos)
-
-
-
-
-
-	objFullBound := pixel.R(objPos.X - objBound.Max.X / 2, objPos.Y + objBound.Max.Y / 2, objPos.X + objBound.Max.X / 2, objPos.Y - objBound.Max.Y / 2)
-
+func (link *Link) update(win *pixelgl.Window, objects []*Object) {
 	frameType := STAND
 	relPos := pixel.ZV
+	newPos := link.pos
 	if win.Pressed(pixelgl.KeyLeft) {
-		link.pos.X--
+		newPos.X--
 		relPos.X--
 		frameType = LEFT
 	}
-
-	//Min:Vec(429, 279) Max:Vec(625, 489)
 	if win.Pressed(pixelgl.KeyRight) {
-		tempPos := link.pos
-		tempPos.X++
-		fmt.Println("------")
-		//fmt.Println(objFullBound)
-		fmt.Println(tempPos)
-		//fmt.Println(objBound)
-		//fmt.Println(objPos)
-		if (tempPos.X > objFullBound.Min.X && tempPos.X < objFullBound.Max.X) &&
-			(tempPos.Y > objFullBound.Min.Y && tempPos.Y < objFullBound.Max.Y) {
-			fmt.Println("collision")
-		} else {
-			link.pos.X++
-		}
+		newPos.X++
 		relPos.X++
 		frameType = RIGHT
 	}
 	if win.Pressed(pixelgl.KeyUp) {
-		link.pos.Y++
+		newPos.Y++
 		relPos.Y++
 		frameType = UP
 	}
 	if win.Pressed(pixelgl.KeyDown) {
-		link.pos.Y--
+		newPos.Y--
 		relPos.Y--
 		frameType = DOWN
 	}
 	if relPos.X == 0 && relPos.Y == 0 {
 		frameType = STAND
+	}
+
+	overlapped := false
+	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
+
+	for _, o := range objects {
+		if overlap(o.bounds, linkBounds) {
+			overlapped = true
+			break
+		}
+	}
+
+	if !overlapped {
+		link.pos = newPos
 	}
 
 	link.setCurrentFrame(frameType)
@@ -163,17 +152,4 @@ func (link *Link) update(win *pixelgl.Window, objBound pixel.Rect, objPos pixel.
 func (link *Link) draw(win *pixelgl.Window) {
 	sprite := pixel.NewSprite(link.sheet, link.currFrame)
 	sprite.Draw(win, pixel.IM.Scaled(pixel.ZV, 2.5).Moved(link.pos))
-}
-
-func loadPicture(path string) (pixel.Picture, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
-	return pixel.PictureDataFromImage(img), nil
 }
