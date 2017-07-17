@@ -1,9 +1,6 @@
 package main
 
 import (
-	"image"
-	"os"
-
 	_ "image/png"
 
 	"github.com/faiface/pixel"
@@ -32,26 +29,26 @@ func NewLink() *Link {
 	link.anims["link_stand"] = []pixel.Rect{pixel.R(30, 360, 60, 390)}
 
 	link.anims["link_down"] = []pixel.Rect{pixel.R(30, 330, 60, 360),
-										   pixel.R(60, 330, 90, 360),
-										   pixel.R(90, 330, 120, 360),
-										   pixel.R(120, 330, 150, 360)}
+		pixel.R(60, 330, 90, 360),
+		pixel.R(90, 330, 120, 360),
+		pixel.R(120, 330, 150, 360)}
 
 	link.anims["link_up"] = []pixel.Rect{pixel.R(0, 240, 30, 270),
-										 pixel.R(30, 240, 60, 270),
-										 pixel.R(60, 240, 90, 270),
-										 pixel.R(90, 240, 120, 270)}
+		pixel.R(30, 240, 60, 270),
+		pixel.R(60, 240, 90, 270),
+		pixel.R(90, 240, 120, 270)}
 
 	link.anims["link_left"] = []pixel.Rect{pixel.R(240, 360, 262, 390),
-										   pixel.R(262, 360, 287, 390),
-										   pixel.R(287, 360, 312, 390),
-										   pixel.R(310, 360, 337, 390)}
+		pixel.R(262, 360, 287, 390),
+		pixel.R(287, 360, 312, 390),
+		pixel.R(310, 360, 337, 390)}
 
 	link.anims["link_right"] = []pixel.Rect{pixel.R(240, 240, 270, 270),
-											  pixel.R(270, 240, 300, 270),
-											  pixel.R(300, 240, 330, 270),
-											  pixel.R(330, 240, 360, 270)}
+		pixel.R(270, 240, 300, 270),
+		pixel.R(300, 240, 330, 270),
+		pixel.R(330, 240, 360, 270)}
 
-	link.pos = pixel.ZV
+	link.pos = pixel.V(130, 130)
 	link.currFrame = pixel.R(0, 0, 0, 0)
 
 	link.frameCount = 0
@@ -61,7 +58,7 @@ func NewLink() *Link {
 }
 
 const (
-	LEFT  = iota + 1
+	LEFT = iota + 1
 	RIGHT
 	DOWN
 	UP
@@ -107,31 +104,46 @@ func getFrameKey(frameType int) string {
 	return "link_stand"
 }
 
-func (link *Link) update(win *pixelgl.Window) {
+func (link *Link) update(win *pixelgl.Window, objects []*Object) {
 	frameType := STAND
 	relPos := pixel.ZV
+	newPos := link.pos
 	if win.Pressed(pixelgl.KeyLeft) {
-		link.pos.X--
+		newPos.X--
 		relPos.X--
 		frameType = LEFT
 	}
 	if win.Pressed(pixelgl.KeyRight) {
-		link.pos.X++
+		newPos.X++
 		relPos.X++
 		frameType = RIGHT
 	}
 	if win.Pressed(pixelgl.KeyUp) {
-		link.pos.Y++
+		newPos.Y++
 		relPos.Y++
 		frameType = UP
 	}
 	if win.Pressed(pixelgl.KeyDown) {
-		link.pos.Y--
+		newPos.Y--
 		relPos.Y--
 		frameType = DOWN
 	}
 	if relPos.X == 0 && relPos.Y == 0 {
 		frameType = STAND
+	}
+
+	overlapped := false
+	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
+
+	for _, o := range objects {
+		if overlap(o.bounds, linkBounds) {
+			overlapped = true
+			break
+		}
+	}
+
+	if !overlapped {
+		link.pos = newPos
 	}
 
 	link.setCurrentFrame(frameType)
@@ -140,17 +152,4 @@ func (link *Link) update(win *pixelgl.Window) {
 func (link *Link) draw(win *pixelgl.Window) {
 	sprite := pixel.NewSprite(link.sheet, link.currFrame)
 	sprite.Draw(win, pixel.IM.Scaled(pixel.ZV, 2.5).Moved(link.pos))
-}
-
-func loadPicture(path string) (pixel.Picture, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
-	return pixel.PictureDataFromImage(img), nil
 }

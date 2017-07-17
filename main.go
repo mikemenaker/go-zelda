@@ -19,14 +19,26 @@ func run() {
 
 	link := NewLink()
 
+	objects := createWorld()
+
 	for !win.Closed() {
 		win.Clear(colornames.Whitesmoke)
 
-		link.update(win)
+		for _, o := range objects {
+			o.draw(win)
+		}
+
+		link.update(win, objects)
 		link.draw(win)
 
 		win.Update()
 	}
+}
+func createWorld() []*Object {
+	var objects []*Object
+	objects = append(objects, NewObject("images/tree.png", pixel.V(200, 384)))
+	objects = append(objects, NewObject("images/tree.png", pixel.V(600, 384)))
+	return objects
 }
 
 func main() {
