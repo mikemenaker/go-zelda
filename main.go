@@ -6,6 +6,7 @@ import (
 	"golang.org/x/image/colornames"
 )
 
+
 func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Go Zelda",
@@ -19,10 +20,18 @@ func run() {
 
 	link := NewLink()
 
+	pic, err := loadPicture("images/tree.png")
+	if err != nil {
+		panic(err)
+	}
+
+	sprite := pixel.NewSprite(pic, pic.Bounds())
+
 	for !win.Closed() {
 		win.Clear(colornames.Whitesmoke)
-
-		link.update(win)
+		sprite.Draw(win, pixel.IM.Scaled(pixel.ZV, 2.5).Moved(win.Bounds().Center()))
+		//Vec, Rect
+		link.update(win, pic.Bounds(), win.Bounds().Center())
 		link.draw(win)
 
 		win.Update()
