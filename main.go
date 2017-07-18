@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
+	"image/color"
 )
 
 func run() {
@@ -21,8 +21,9 @@ func run() {
 
 	objects := createWorld()
 
+	bgColor := color.RGBA{72, 152, 72, 1}
 	for !win.Closed() {
-		win.Clear(colornames.Whitesmoke)
+		win.Clear(bgColor)
 
 		for _, o := range objects {
 			o.draw(win)
