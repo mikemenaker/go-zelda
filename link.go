@@ -55,23 +55,23 @@ func NewLink() *Link {
 		pixel.R(115, 270, 145, 303),
 		pixel.R(145, 270, 180, 303)}
 
-	link.anims["attack_up"] = []pixel.Rect{pixel.R(0, 180, 30, 210),
-		pixel.R(30, 180, 60, 210),
-		pixel.R(60, 180, 90, 210),
-		pixel.R(90, 180, 115, 210),
+	link.anims["attack_up"] = []pixel.Rect{pixel.R(0, 180, 25, 210),
+		pixel.R(29, 172, 55, 213),
+		pixel.R(60, 172, 85, 214),
+		pixel.R(87, 174, 114, 213),
 		pixel.R(115, 180, 145, 210)}
 
 	link.anims["attack_left"] = []pixel.Rect{pixel.R(240, 270, 270, 300),
 		pixel.R(270, 270, 300, 300),
 		pixel.R(300, 270, 330, 300),
 		pixel.R(330, 270, 360, 300),
-		pixel.R(360, 270, 390, 300)}
+		pixel.R(360, 276, 390, 303)}
 
-	link.anims["attack_right"] = []pixel.Rect{pixel.R(240, 180, 270, 210),
-		pixel.R(270, 180, 300, 210),
-		pixel.R(300, 180, 330, 210),
-		pixel.R(330, 180, 360, 210),
-		pixel.R(360, 180, 390, 210)}
+	link.anims["attack_right"] = []pixel.Rect{pixel.R(240, 180, 265, 210),
+		pixel.R(265, 180, 295, 210),
+		pixel.R(295, 180, 327, 210),
+		pixel.R(327, 180, 359, 210),
+		pixel.R(359, 183, 392, 213)}
 
 	link.pos = pixel.V(130, 130)
 	link.currFrame = pixel.R(0, 0, 0, 0)
