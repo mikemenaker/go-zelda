@@ -3,8 +3,14 @@ package main
 import (
 	_ "image/png"
 
+	"encoding/csv"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"github.com/pkg/errors"
+	"image"
+	"io"
+	"os"
+	"strconv"
 )
 
 type Link struct {
@@ -17,63 +23,72 @@ type Link struct {
 	tick          int
 }
 
+func loadAnimationSheet(sheetPath, descPath string) (sheet pixel.Picture, anims map[string][]pixel.Rect, err error) {
+	// total hack, nicely format the error at the end, so I don't have to type it every time
+	defer func() {
+		if err != nil {
+			err = errors.Wrap(err, "error loading animation sheet")
+		}
+	}()
+
+	// open and load the spritesheet
+	sheetFile, err := os.Open(sheetPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer sheetFile.Close()
+	sheetImg, _, err := image.Decode(sheetFile)
+	if err != nil {
+		return nil, nil, err
+	}
+	sheet = pixel.PictureDataFromImage(sheetImg)
+
+	descFile, err := os.Open(descPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer descFile.Close()
+
+	anims = make(map[string][]pixel.Rect)
+
+	// load the animation information, name and interval inside the spritesheet
+	desc := csv.NewReader(descFile)
+	for {
+		anim, err := desc.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, nil, err
+		}
+
+		name := anim[0]
+		minx, _ := strconv.Atoi(anim[1])
+		miny, _ := strconv.Atoi(anim[2])
+		maxx, _ := strconv.Atoi(anim[3])
+		maxy, _ := strconv.Atoi(anim[4])
+		newFrame := pixel.R(float64(minx), float64(miny), float64(maxx), float64(maxy))
+
+		if frames, ok := anims[name]; ok {
+			frames = append(frames, newFrame)
+			anims[name] = frames
+		} else {
+			anims[name] = []pixel.Rect{newFrame}
+		}
+	}
+
+	return sheet, anims, nil
+}
+
 func NewLink() *Link {
 	link := new(Link)
-	sheet, err := loadPicture("images/sprites/link.png")
+
+	sheet, anims, err := loadAnimationSheet("images/sprites/link.png", "images/sprites/sheet.csv")
 	if err != nil {
 		panic(err)
 	}
-
 	link.sheet = sheet
-	link.anims = make(map[string][]pixel.Rect)
-	link.anims["stand"] = []pixel.Rect{pixel.R(30, 360, 60, 390)}
-
-	link.anims["walk_down"] = []pixel.Rect{pixel.R(30, 330, 60, 360),
-		pixel.R(60, 330, 90, 360),
-		pixel.R(90, 330, 120, 360),
-		pixel.R(120, 330, 150, 360)}
-
-	link.anims["walk_up"] = []pixel.Rect{pixel.R(0, 240, 30, 270),
-		pixel.R(30, 240, 60, 270),
-		pixel.R(60, 240, 90, 270),
-		pixel.R(90, 240, 120, 270)}
-
-	link.anims["walk_left"] = []pixel.Rect{pixel.R(240, 360, 262, 390),
-		pixel.R(262, 360, 287, 390),
-		pixel.R(287, 360, 312, 390),
-		pixel.R(310, 360, 337, 390)}
-
-	link.anims["walk_right"] = []pixel.Rect{pixel.R(240, 240, 270, 270),
-		pixel.R(270, 240, 300, 270),
-		pixel.R(300, 240, 330, 270),
-		pixel.R(330, 240, 360, 270)}
-
-	link.anims["attack_down"] = []pixel.Rect{pixel.R(0, 270, 30, 300),
-		pixel.R(30, 270, 60, 300),
-		pixel.R(60, 270, 90, 303),
-		pixel.R(90, 270, 115, 303),
-		pixel.R(115, 270, 145, 303),
-		pixel.R(145, 270, 180, 303)}
-
-	link.anims["attack_up"] = []pixel.Rect{pixel.R(0, 180, 25, 210),
-		pixel.R(29, 172, 55, 213),
-		pixel.R(60, 172, 85, 214),
-		pixel.R(87, 174, 114, 213),
-		pixel.R(115, 180, 145, 210)}
-
-	link.anims["attack_left"] = []pixel.Rect{pixel.R(240, 270, 268, 300),
-		pixel.R(270, 270, 295, 300),
-		pixel.R(295, 270, 325, 300),
-		pixel.R(326, 270, 358, 300),
-		pixel.R(358, 270, 390, 303),
-		pixel.R(358, 270, 390, 303),
-		pixel.R(358, 270, 390, 303)}
-
-	link.anims["attack_right"] = []pixel.Rect{pixel.R(240, 180, 265, 210),
-		pixel.R(265, 180, 295, 210),
-		pixel.R(295, 180, 327, 210),
-		pixel.R(327, 180, 359, 210),
-		pixel.R(359, 183, 392, 213)}
+	link.anims = anims
 
 	link.pos = pixel.V(130, 130)
 	link.currFrame = pixel.R(0, 0, 0, 0)
