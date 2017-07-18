@@ -61,11 +61,13 @@ func NewLink() *Link {
 		pixel.R(87, 174, 114, 213),
 		pixel.R(115, 180, 145, 210)}
 
-	link.anims["attack_left"] = []pixel.Rect{pixel.R(240, 270, 270, 300),
-		pixel.R(270, 270, 300, 300),
-		pixel.R(300, 270, 330, 300),
-		pixel.R(330, 270, 360, 300),
-		pixel.R(360, 276, 390, 303)}
+	link.anims["attack_left"] = []pixel.Rect{pixel.R(240, 270, 268, 300),
+		pixel.R(270, 270, 295, 300),
+		pixel.R(295, 270, 325, 300),
+		pixel.R(326, 270, 358, 300),
+		pixel.R(358, 270, 390, 303),
+		pixel.R(358, 270, 390, 303),
+		pixel.R(358, 270, 390, 303)}
 
 	link.anims["attack_right"] = []pixel.Rect{pixel.R(240, 180, 265, 210),
 		pixel.R(265, 180, 295, 210),
