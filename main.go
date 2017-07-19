@@ -30,7 +30,10 @@ func run() {
 		}
 
 		for _, e := range enemies {
-			e.draw(win)
+			if !e.isDead {
+				e.update(win, objects, enemies)
+				e.draw(win)
+			}
 		}
 
 		link.update(win, objects, enemies)
@@ -45,7 +48,8 @@ func createWorld() ([]*Object, []*Enemy) {
 	objects = append(objects, NewObject("images/tree.png", pixel.V(600, 384)))
 
 	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy("images/green_soldier.png", pixel.V(440, 384)))
+	enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
+	enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
 
 	return objects, enemies
 }
