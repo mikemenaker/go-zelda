@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"fmt"
 )
 
 type Link struct {
@@ -123,7 +124,7 @@ func (link *Link) setCurrentFrame(frameType int) {
 			link.tick = 0
 			if link.frameCount == len(link.anims[frameKey])-1 {
 				link.frameCount = 0
-				if link.lastFrameType == ATTACK_UP || link.lastFrameType == ATTACK_DOWN || link.lastFrameType == ATTACK_LEFT || link.lastFrameType == ATTACK_RIGHT {
+				if link.isAttacking(link.lastFrameType) {
 					link.lastFrameType = STAND
 				}
 			} else {
@@ -162,34 +163,39 @@ func getFrameKey(frameType int) string {
 	return "link_stand"
 }
 
-func (link *Link) update(win *pixelgl.Window, objects []*Object) {
+func (link *Link) update(win *pixelgl.Window, objects []*Object, enemies []*Enemy) {
 	frameType := STAND
 
-	if link.lastFrameType != ATTACK_UP && link.lastFrameType != ATTACK_DOWN && link.lastFrameType != ATTACK_LEFT && link.lastFrameType != ATTACK_RIGHT {
+	if !link.isAttacking(link.lastFrameType) {
 		relPos := pixel.ZV
 		newPos := link.pos
+		bouncePos := link.pos
 		actionFrameType := ATTACK_UP
 		if win.Pressed(pixelgl.KeyLeft) {
 			newPos.X--
 			relPos.X--
+			bouncePos.X += 17
 			frameType = WALK_LEFT
 			actionFrameType = ATTACK_LEFT
 		}
 		if win.Pressed(pixelgl.KeyRight) {
 			newPos.X++
 			relPos.X++
+			bouncePos.X -= 17
 			frameType = WALK_RIGHT
 			actionFrameType = ATTACK_RIGHT
 		}
 		if win.Pressed(pixelgl.KeyUp) {
 			newPos.Y++
 			relPos.Y++
+			bouncePos.Y -= 17
 			frameType = WALK_UP
 			actionFrameType = ATTACK_UP
 		}
 		if win.Pressed(pixelgl.KeyDown) {
 			newPos.Y--
 			relPos.Y--
+			bouncePos.Y += 17
 			frameType = WALK_DOWN
 			actionFrameType = ATTACK_DOWN
 		}
@@ -203,11 +209,26 @@ func (link *Link) update(win *pixelgl.Window, objects []*Object) {
 
 		overlapped := false
 		linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
+		linkAttackBounds := getBounds(newPos, pixel.R(-15, -15, 45, 45))
 
 		for _, o := range objects {
 			if overlap(o.bounds, linkBounds) {
 				overlapped = true
 				break
+			}
+		}
+
+		for _, e := range enemies {
+			if link.isAttacking(frameType) {
+				if overlap(e.bounds, linkAttackBounds) {
+					fmt.Println("collided and attacking")
+					overlapped = true
+				}
+			} else {
+				if overlap(e.bounds, linkBounds) {
+					fmt.Println("collision no attack")
+					newPos = bouncePos
+				}
 			}
 		}
 
@@ -219,6 +240,9 @@ func (link *Link) update(win *pixelgl.Window, objects []*Object) {
 	}
 
 	link.setCurrentFrame(frameType)
+}
+func (link *Link) isAttacking(frameType int) bool {
+	return frameType == ATTACK_UP || frameType == ATTACK_DOWN || frameType == ATTACK_LEFT || frameType == ATTACK_RIGHT
 }
 
 func (link *Link) draw(win *pixelgl.Window) {

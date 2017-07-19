@@ -19,7 +19,7 @@ func run() {
 
 	link := NewLink()
 
-	objects := createWorld()
+	objects, enemies := createWorld()
 
 	bgColor := color.RGBA{72, 152, 72, 1}
 	for !win.Closed() {
@@ -29,17 +29,25 @@ func run() {
 			o.draw(win)
 		}
 
-		link.update(win, objects)
+		for _, e := range enemies {
+			e.draw(win)
+		}
+
+		link.update(win, objects, enemies)
 		link.draw(win)
 
 		win.Update()
 	}
 }
-func createWorld() []*Object {
+func createWorld() ([]*Object, []*Enemy) {
 	var objects []*Object
 	objects = append(objects, NewObject("images/tree.png", pixel.V(200, 384)))
 	objects = append(objects, NewObject("images/tree.png", pixel.V(600, 384)))
-	return objects
+
+	var enemies []*Enemy
+	enemies = append(enemies, NewEnemy("images/green_soldier.png", pixel.V(440, 384)))
+
+	return objects, enemies
 }
 
 func main() {
