@@ -3,14 +3,8 @@ package main
 import (
 	_ "image/png"
 
-	"encoding/csv"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"github.com/pkg/errors"
-	"image"
-	"io"
-	"os"
-	"strconv"
 )
 
 type Link struct {
@@ -21,63 +15,6 @@ type Link struct {
 	lastFrameType int
 	frameCount    int
 	tick          int
-}
-
-func loadAnimationSheet(sheetPath, descPath string) (sheet pixel.Picture, anims map[string][]pixel.Rect, err error) {
-	// total hack, nicely format the error at the end, so I don't have to type it every time
-	defer func() {
-		if err != nil {
-			err = errors.Wrap(err, "error loading animation sheet")
-		}
-	}()
-
-	// open and load the spritesheet
-	sheetFile, err := os.Open(sheetPath)
-	if err != nil {
-		return nil, nil, err
-	}
-	defer sheetFile.Close()
-	sheetImg, _, err := image.Decode(sheetFile)
-	if err != nil {
-		return nil, nil, err
-	}
-	sheet = pixel.PictureDataFromImage(sheetImg)
-
-	descFile, err := os.Open(descPath)
-	if err != nil {
-		return nil, nil, err
-	}
-	defer descFile.Close()
-
-	anims = make(map[string][]pixel.Rect)
-
-	// load the animation information, name and interval inside the spritesheet
-	desc := csv.NewReader(descFile)
-	for {
-		anim, err := desc.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, nil, err
-		}
-
-		name := anim[0]
-		minx, _ := strconv.Atoi(anim[1])
-		miny, _ := strconv.Atoi(anim[2])
-		maxx, _ := strconv.Atoi(anim[3])
-		maxy, _ := strconv.Atoi(anim[4])
-		newFrame := pixel.R(float64(minx), float64(miny), float64(maxx), float64(maxy))
-
-		if frames, ok := anims[name]; ok {
-			frames = append(frames, newFrame)
-			anims[name] = frames
-		} else {
-			anims[name] = []pixel.Rect{newFrame}
-		}
-	}
-
-	return sheet, anims, nil
 }
 
 func NewLink() *Link {
@@ -112,7 +49,7 @@ const (
 )
 
 func (link *Link) setCurrentFrame(frameType int) {
-	frameKey := getFrameKey(frameType)
+	frameKey := link.getFrameKey(frameType)
 
 	if frameType != link.lastFrameType {
 		link.lastFrameType = frameType
@@ -123,7 +60,9 @@ func (link *Link) setCurrentFrame(frameType int) {
 			link.tick = 0
 			if link.frameCount == len(link.anims[frameKey])-1 {
 				link.frameCount = 0
-				if link.lastFrameType == ATTACK_UP || link.lastFrameType == ATTACK_DOWN || link.lastFrameType == ATTACK_LEFT || link.lastFrameType == ATTACK_RIGHT {
+
+				// finished attack animation move switch to stand animation
+				if link.isAttacking(link.lastFrameType) {
 					link.lastFrameType = STAND
 				}
 			} else {
@@ -137,7 +76,7 @@ func (link *Link) setCurrentFrame(frameType int) {
 	link.currFrame = link.anims[frameKey][link.frameCount]
 }
 
-func getFrameKey(frameType int) string {
+func (link *Link) getFrameKey(frameType int) string {
 	switch frameType {
 	case WALK_LEFT:
 		return "walk_left"
@@ -162,54 +101,16 @@ func getFrameKey(frameType int) string {
 	return "link_stand"
 }
 
-func (link *Link) update(win *pixelgl.Window, objects []*Object) {
+func (link *Link) update(win *pixelgl.Window, objects []*Object, enemies []*Enemy) {
 	frameType := STAND
 
-	if link.lastFrameType != ATTACK_UP && link.lastFrameType != ATTACK_DOWN && link.lastFrameType != ATTACK_LEFT && link.lastFrameType != ATTACK_RIGHT {
-		relPos := pixel.ZV
-		newPos := link.pos
-		actionFrameType := ATTACK_UP
-		if win.Pressed(pixelgl.KeyLeft) {
-			newPos.X--
-			relPos.X--
-			frameType = WALK_LEFT
-			actionFrameType = ATTACK_LEFT
-		}
-		if win.Pressed(pixelgl.KeyRight) {
-			newPos.X++
-			relPos.X++
-			frameType = WALK_RIGHT
-			actionFrameType = ATTACK_RIGHT
-		}
-		if win.Pressed(pixelgl.KeyUp) {
-			newPos.Y++
-			relPos.Y++
-			frameType = WALK_UP
-			actionFrameType = ATTACK_UP
-		}
-		if win.Pressed(pixelgl.KeyDown) {
-			newPos.Y--
-			relPos.Y--
-			frameType = WALK_DOWN
-			actionFrameType = ATTACK_DOWN
-		}
-		if relPos.X == 0 && relPos.Y == 0 {
-			frameType = STAND
-		}
+	// don't move while attacking
+	if !link.isAttacking(link.lastFrameType) {
+		var newPos pixel.Vec
+		var bouncePos pixel.Vec
+		newPos, bouncePos, frameType = link.trackMovement(win)
 
-		if win.JustPressed(pixelgl.KeySpace) {
-			frameType = actionFrameType
-		}
-
-		overlapped := false
-		linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
-
-		for _, o := range objects {
-			if overlap(o.bounds, linkBounds) {
-				overlapped = true
-				break
-			}
-		}
+		overlapped := link.handleCollisions(newPos, objects, enemies, frameType, bouncePos)
 
 		if !overlapped {
 			link.pos = newPos
@@ -219,6 +120,90 @@ func (link *Link) update(win *pixelgl.Window, objects []*Object) {
 	}
 
 	link.setCurrentFrame(frameType)
+}
+
+func (link *Link) handleCollisions(newPos pixel.Vec, objects []*Object, enemies []*Enemy, frameType int, bouncePos pixel.Vec) bool {
+	overlapped := false
+	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
+	linkAttackBounds := getBounds(newPos, pixel.R(-15, -15, 45, 45))
+	for _, o := range objects {
+		if overlap(o.bounds, linkBounds) {
+			overlapped = true
+			break
+		}
+	}
+	for _, e := range enemies {
+		enemyBounds := getBounds(e.loc, e.size)
+		if link.isAttacking(frameType) {
+			if overlap(enemyBounds, linkAttackBounds) {
+				e.frameCount = 0
+				e.tick = 0
+				e.animCount = 0
+				e.isDying = true
+				overlapped = true
+			}
+		} else {
+			if overlap(enemyBounds, linkBounds) {
+				newPos = bouncePos
+			}
+		}
+	}
+
+	screenBounds := pixel.R(60, 60, 1024-60, 768-60)
+	if !overlap(linkBounds, screenBounds) {
+		overlapped = false
+	}
+
+	return overlapped
+}
+
+func (link *Link) trackMovement(win *pixelgl.Window) (pixel.Vec, pixel.Vec, int) {
+	relPos := pixel.ZV
+	newPos := link.pos
+	bouncePos := link.pos
+	frameType := STAND
+	actionFrameType := ATTACK_UP
+
+	if win.Pressed(pixelgl.KeyLeft) {
+		newPos.X--
+		relPos.X--
+		bouncePos.X += 17
+		frameType = WALK_LEFT
+		actionFrameType = ATTACK_LEFT
+	}
+	if win.Pressed(pixelgl.KeyRight) {
+		newPos.X++
+		relPos.X++
+		bouncePos.X -= 17
+		frameType = WALK_RIGHT
+		actionFrameType = ATTACK_RIGHT
+	}
+	if win.Pressed(pixelgl.KeyUp) {
+		newPos.Y++
+		relPos.Y++
+		bouncePos.Y -= 17
+		frameType = WALK_UP
+		actionFrameType = ATTACK_UP
+	}
+	if win.Pressed(pixelgl.KeyDown) {
+		newPos.Y--
+		relPos.Y--
+		bouncePos.Y += 17
+		frameType = WALK_DOWN
+		actionFrameType = ATTACK_DOWN
+	}
+	if relPos.X == 0 && relPos.Y == 0 {
+		frameType = STAND
+	}
+	if win.JustPressed(pixelgl.KeySpace) {
+		frameType = actionFrameType
+	}
+
+	return newPos, bouncePos, frameType
+}
+
+func (link *Link) isAttacking(frameType int) bool {
+	return frameType == ATTACK_UP || frameType == ATTACK_DOWN || frameType == ATTACK_LEFT || frameType == ATTACK_RIGHT
 }
 
 func (link *Link) draw(win *pixelgl.Window) {
