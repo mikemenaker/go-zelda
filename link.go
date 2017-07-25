@@ -110,10 +110,14 @@ func (link *Link) update(win *pixelgl.Window, objects []*Object, enemies []*Enem
 		var bouncePos pixel.Vec
 		newPos, bouncePos, frameType = link.trackMovement(win)
 
-		overlapped := link.handleCollisions(newPos, objects, enemies, frameType, bouncePos)
+		validPosition := link.handleObstacleCollisions(newPos, objects)
 
-		if !overlapped {
-			link.pos = newPos
+		if validPosition {
+			validPosition, newPos = link.handleEnemyCollisions(newPos, enemies, frameType, bouncePos)
+
+			if validPosition {
+				link.pos = newPos
+			}
 		}
 	} else {
 		frameType = link.lastFrameType
@@ -122,39 +126,42 @@ func (link *Link) update(win *pixelgl.Window, objects []*Object, enemies []*Enem
 	link.setCurrentFrame(frameType)
 }
 
-func (link *Link) handleCollisions(newPos pixel.Vec, objects []*Object, enemies []*Enemy, frameType int, bouncePos pixel.Vec) bool {
-	overlapped := false
+func (link *Link) handleObstacleCollisions(newPos pixel.Vec, objects []*Object) bool {
 	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
-	linkAttackBounds := getBounds(newPos, pixel.R(-15, -15, 45, 45))
 	for _, o := range objects {
-		if overlap(o.bounds, linkBounds) {
-			overlapped = true
-			break
-		}
-	}
-	for _, e := range enemies {
-		enemyBounds := getBounds(e.loc, e.size)
-		if link.isAttacking(frameType) {
-			if overlap(enemyBounds, linkAttackBounds) {
-				e.frameCount = 0
-				e.tick = 0
-				e.animCount = 0
-				e.isDying = true
-				overlapped = true
-			}
-		} else {
-			if overlap(enemyBounds, linkBounds) {
-				newPos = bouncePos
-			}
+		if o.blocking && overlap(o.bounds, linkBounds) {
+			return false
 		}
 	}
 
 	screenBounds := pixel.R(60, 60, 1024-60, 768-60)
 	if !overlap(linkBounds, screenBounds) {
-		overlapped = false
+		return false
 	}
 
-	return overlapped
+	return true
+}
+
+func (link *Link) handleEnemyCollisions(newPos pixel.Vec, enemies []*Enemy, frameType int, bouncePos pixel.Vec) (bool, pixel.Vec) {
+	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
+	linkAttackBounds := getBounds(newPos, pixel.R(-15, -15, 45, 45))
+
+	for _, e := range enemies {
+		if !e.isDead && !e.isDying {
+			enemyBounds := getBounds(e.loc, e.size)
+			if link.isAttacking(frameType) && overlap(enemyBounds, linkAttackBounds) {
+				e.frameCount = 0
+				e.tick = 0
+				e.animCount = 0
+				e.isDying = true
+				return false, newPos
+			} else if overlap(enemyBounds, linkBounds) {
+				return true, bouncePos
+			}
+		}
+	}
+
+	return true, newPos
 }
 
 func (link *Link) trackMovement(win *pixelgl.Window) (pixel.Vec, pixel.Vec, int) {

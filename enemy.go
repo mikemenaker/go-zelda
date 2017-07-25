@@ -141,7 +141,7 @@ func (enemy *Enemy) update(win *pixelgl.Window, objects []*Object, enemies []*En
 		bounds := getBounds(newPos, enemy.size)
 
 		for _, o := range objects {
-			if overlap(o.bounds, bounds) {
+			if o.blocking && overlap(o.bounds, bounds) {
 				overlapped = true
 				break
 			}

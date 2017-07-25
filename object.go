@@ -10,9 +10,10 @@ type Object struct {
 	size   pixel.Rect
 	bounds pixel.Rect
 	sprite *pixel.Sprite
+	blocking bool
 }
 
-func NewObject(img string, loc pixel.Vec) *Object {
+func NewObject(img string, loc pixel.Vec, blocking bool) *Object {
 	object := new(Object)
 
 	pic, err := loadPicture(img)
@@ -24,6 +25,7 @@ func NewObject(img string, loc pixel.Vec) *Object {
 	object.loc = loc
 	object.bounds = getBounds(object.loc, object.size)
 	object.sprite = pixel.NewSprite(pic, object.size)
+	object.blocking = blocking
 
 	return object
 }
