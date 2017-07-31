@@ -10,7 +10,7 @@ type Door struct {
 	target int
 }
 
-func NewDoor(img string, loc pixel.Vec, blocking bool) *Door {
+func NewDoor(img string, loc pixel.Vec, target int) *Door {
 	door := new(Door)
 
 	pic, err := loadPicture(img)
@@ -22,7 +22,8 @@ func NewDoor(img string, loc pixel.Vec, blocking bool) *Door {
 	door.loc = loc
 	door.bounds = getBounds(door.loc, door.size)
 	door.sprite = pixel.NewSprite(pic, door.size)
-	door.blocking = blocking
+	door.blocking = false
+	door.target = target
 
 	return door
 }

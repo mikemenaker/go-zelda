@@ -14,7 +14,8 @@ type World struct {
 }
 
 const (
-	OVERWORLD = iota + 1
+	CURRENT = iota + 1
+	OVERWORLD
 	CAVE
 )
 
@@ -40,9 +41,22 @@ func createWorld(worldType int) *World {
 		enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
 		world.enemies = enemies
 
+		var doors []*Door
+		doors = append(doors, NewDoor("images/cave_entrance.png", pixel.V(390, 670), CAVE))
+		world.doors = doors
+
 		world.brColor = color.RGBA{72, 152, 72, 1}
-	} else {
-		// CAVE
+	} else if worldType == CAVE {
+		var objects []*Object
+		objects = append(objects, NewObject("images/tree.png", pixel.V(200, 384), true))
+		world.objects = objects
+
+		var enemies []*Enemy
+		enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
+		enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
+		world.enemies = enemies
+
+		world.brColor = color.Black
 	}
 
 	return world
@@ -53,6 +67,10 @@ func (world *World) UpdateAndDraw(win *pixelgl.Window) {
 
 	for _, o := range world.objects {
 		o.draw(win)
+	}
+
+	for _, d := range world.doors {
+		d.draw(win)
 	}
 
 	for _, e := range world.enemies {

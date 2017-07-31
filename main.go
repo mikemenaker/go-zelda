@@ -28,8 +28,13 @@ func run() {
 			intro.draw(win)
 		} else {
 			world.UpdateAndDraw(win)
-			link.update(win, world)
-			link.draw(win)
+			worldType := link.update(win, world)
+
+			if worldType != CURRENT {
+				world = createWorld(worldType)
+			} else {
+				link.draw(win)
+			}
 		}
 
 		win.Update()
