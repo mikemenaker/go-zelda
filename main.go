@@ -17,34 +17,18 @@ func run() {
 		panic(err)
 	}
 
-	// create intro
 	intro := NewIntro()
-
-	// init for overworld
 	link := NewLink()
-	objects, enemies := createWorld()
-	bgColor := color.RGBA{72, 152, 72, 1}
+	world := createWorld(OVERWORLD)
 
 	for !win.Closed() {
 		if intro.isActive {
-			win.Clear(bgColor)
+			win.Clear(color.Black)
 			intro.update(win)
 			intro.draw(win)
 		} else {
-			win.Clear(bgColor)
-
-			for _, o := range objects {
-				o.draw(win)
-			}
-
-			for _, e := range enemies {
-				if !e.isDead {
-					e.update(win, objects, enemies)
-					e.draw(win)
-				}
-			}
-
-			link.update(win, objects, enemies)
+			world.UpdateAndDraw(win)
+			link.update(win, world)
 			link.draw(win)
 		}
 

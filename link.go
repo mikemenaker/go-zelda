@@ -101,7 +101,7 @@ func (link *Link) getFrameKey(frameType int) string {
 	return "link_stand"
 }
 
-func (link *Link) update(win *pixelgl.Window, objects []*Object, enemies []*Enemy) {
+func (link *Link) update(win *pixelgl.Window, world *World) {
 	frameType := STAND
 
 	// don't move while attacking
@@ -110,10 +110,10 @@ func (link *Link) update(win *pixelgl.Window, objects []*Object, enemies []*Enem
 		var bouncePos pixel.Vec
 		newPos, bouncePos, frameType = link.trackMovement(win)
 
-		validPosition := link.handleObstacleCollisions(newPos, objects)
+		validPosition := link.handleObstacleCollisions(newPos, world.objects)
 
 		if validPosition {
-			validPosition, newPos = link.handleEnemyCollisions(newPos, enemies, frameType, bouncePos)
+			validPosition, newPos = link.handleEnemyCollisions(newPos, world.enemies, frameType, bouncePos)
 
 			if validPosition {
 				link.pos = newPos
