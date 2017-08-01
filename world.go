@@ -4,6 +4,7 @@ import (
 	"github.com/faiface/pixel"
 	"image/color"
 	"github.com/faiface/pixel/pixelgl"
+	"golang.org/x/image/colornames"
 )
 
 type World struct {
@@ -11,12 +12,14 @@ type World struct {
 	enemies []*Enemy
 	doors []*Door
 	brColor color.Color
+	linkPos pixel.Vec
 }
 
 const (
 	CURRENT = iota + 1
 	OVERWORLD
 	CAVE
+	CASTLE
 )
 
 func createWorld(worldType int) *World {
@@ -46,6 +49,8 @@ func createWorld(worldType int) *World {
 		world.doors = doors
 
 		world.brColor = color.RGBA{72, 152, 72, 1}
+
+		world.linkPos = pixel.V(0, 0)
 	} else if worldType == CAVE {
 		var objects []*Object
 		objects = append(objects, NewObject("images/tree.png", pixel.V(200, 384), true))
@@ -57,6 +62,21 @@ func createWorld(worldType int) *World {
 		world.enemies = enemies
 
 		world.brColor = color.Black
+
+		world.linkPos = pixel.V(0, 0)
+	} else if worldType == CAVE {
+		var objects []*Object
+		objects = append(objects, NewObject("images/tree.png", pixel.V(200, 384), true))
+		world.objects = objects
+
+		var enemies []*Enemy
+		enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
+		enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
+		world.enemies = enemies
+
+		world.brColor = colornames.Skyblue
+
+		world.linkPos = pixel.V(0, 0)
 	}
 
 	return world

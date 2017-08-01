@@ -32,6 +32,9 @@ func run() {
 
 			if worldType != CURRENT {
 				world = createWorld(worldType)
+				if world.linkPos != pixel.V(0, 0) {
+					link.pos = world.linkPos
+				}
 			} else {
 				link.draw(win)
 			}
