@@ -6,10 +6,10 @@ import (
 )
 
 type Object struct {
-	loc    pixel.Vec
-	size   pixel.Rect
-	bounds pixel.Rect
-	sprite *pixel.Sprite
+	loc      pixel.Vec
+	size     pixel.Rect
+	bounds   pixel.Rect
+	sprite   *pixel.Sprite
 	blocking bool
 }
 

@@ -7,20 +7,20 @@ import (
 
 type Intro struct {
 	background *pixel.Sprite
-	text *pixel.Sprite
+	text       *pixel.Sprite
 	isActive   bool
 }
 
 func NewIntro() *Intro {
 	intro := new(Intro)
 
-	pic, err := loadPicture("images/intro_bg.png")
+	pic, err := loadPicture("images/intro/intro_bg.png")
 	if err != nil {
 		panic(err)
 	}
 	intro.background = pixel.NewSprite(pic, pic.Bounds())
 
-	pic, err = loadPicture("images/intro_text.png")
+	pic, err = loadPicture("images/intro/intro_text.png")
 	if err != nil {
 		panic(err)
 	}

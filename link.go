@@ -124,7 +124,7 @@ func (link *Link) update(win *pixelgl.Window, world *World) int {
 	return CURRENT
 }
 
-func (link *Link)handleCollisions(newPos pixel.Vec, world *World, frameType int, bouncePos pixel.Vec) pixel.Vec {
+func (link *Link) handleCollisions(newPos pixel.Vec, world *World, frameType int, bouncePos pixel.Vec) pixel.Vec {
 	validPosition := link.handleObstacleCollisions(newPos, world.objects)
 	if validPosition {
 		validPosition, newPos = link.handleEnemyCollisions(newPos, world.enemies, frameType, bouncePos)
