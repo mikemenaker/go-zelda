@@ -17,41 +17,31 @@ func run() {
 		panic(err)
 	}
 
+	intro := NewIntro()
 	link := NewLink()
+	world := createWorld(OVERWORLD)
 
-	objects, enemies := createWorld()
-
-	bgColor := color.RGBA{72, 152, 72, 1}
 	for !win.Closed() {
-		win.Clear(bgColor)
+		if intro.isActive {
+			win.Clear(color.Black)
+			intro.update(win)
+			intro.draw(win)
+		} else {
+			world.UpdateAndDraw(win)
+			worldType := link.update(win, world)
 
-		for _, o := range objects {
-			o.draw(win)
-		}
-
-		for _, e := range enemies {
-			if !e.isDead {
-				e.update(win, objects, enemies)
-				e.draw(win)
+			if worldType != CURRENT {
+				world = createWorld(worldType)
+				if world.linkPos != pixel.V(0, 0) {
+					link.pos = world.linkPos
+				}
+			} else {
+				link.draw(win)
 			}
 		}
 
-		link.update(win, objects, enemies)
-		link.draw(win)
-
 		win.Update()
 	}
-}
-func createWorld() ([]*Object, []*Enemy) {
-	var objects []*Object
-	objects = append(objects, NewObject("images/tree.png", pixel.V(200, 384)))
-	objects = append(objects, NewObject("images/tree.png", pixel.V(600, 384)))
-
-	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
-
-	return objects, enemies
 }
 
 func main() {
