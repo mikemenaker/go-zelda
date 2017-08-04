@@ -1,10 +1,11 @@
-package main
+package elements
 
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"math/rand"
 	"time"
+	"go-zelda/utils"
 )
 
 type Enemy struct {
@@ -35,12 +36,12 @@ const (
 func NewEnemy(loc pixel.Vec) *Enemy {
 	enemy := new(Enemy)
 
-	sheet, anims, err := loadAnimationSheet("images/sprites/greensoldier.png", "images/sprites/greensoldier_sheet.csv")
+	sheet, anims, err := utils.LoadAnimationSheet("images/sprites/greensoldier.png", "images/sprites/greensoldier_sheet.csv")
 	if err != nil {
 		panic(err)
 	}
 
-	dying_sheet, dying_anims, err := loadAnimationSheet("images/sprites/dying.png", "images/sprites/dying_sheet.csv")
+	dying_sheet, dying_anims, err := utils.LoadAnimationSheet("images/sprites/dying.png", "images/sprites/dying_sheet.csv")
 	if err != nil {
 		panic(err)
 	}
@@ -138,10 +139,10 @@ func (enemy *Enemy) update(win *pixelgl.Window, objects []*Object, enemies []*En
 		}
 
 		overlapped := false
-		bounds := getBounds(newPos, enemy.size)
+		bounds := utils.GetBounds(newPos, enemy.size)
 
 		for _, o := range objects {
-			if o.blocking && overlap(o.bounds, bounds) {
+			if o.blocking && utils.Overlap(o.bounds, bounds) {
 				overlapped = true
 				break
 			}
@@ -149,8 +150,8 @@ func (enemy *Enemy) update(win *pixelgl.Window, objects []*Object, enemies []*En
 
 		for _, e := range enemies {
 			if enemy.loc != e.loc {
-				enemyBounds := getBounds(e.loc, e.size)
-				if overlap(enemyBounds, bounds) {
+				enemyBounds := utils.GetBounds(e.loc, e.size)
+				if utils.Overlap(enemyBounds, bounds) {
 					overlapped = true
 					break
 				}
@@ -158,7 +159,7 @@ func (enemy *Enemy) update(win *pixelgl.Window, objects []*Object, enemies []*En
 		}
 
 		screenBounds := pixel.R(enemy.size.Max.X*2, enemy.size.Max.Y*2, 1024-(enemy.size.Max.X*2), 768-(enemy.size.Max.Y*2))
-		if !overlapped && overlap(bounds, screenBounds) {
+		if !overlapped && utils.Overlap(bounds, screenBounds) {
 			enemy.loc = newPos
 			enemy.setCurrentFrame()
 		} else {

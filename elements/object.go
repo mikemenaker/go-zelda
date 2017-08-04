@@ -1,8 +1,9 @@
-package main
+package elements
 
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"go-zelda/utils"
 )
 
 type Object struct {
@@ -16,14 +17,14 @@ type Object struct {
 func NewObject(img string, loc pixel.Vec, blocking bool) *Object {
 	object := new(Object)
 
-	pic, err := loadPicture(img)
+	pic, err := utils.LoadPicture(img)
 	if err != nil {
 		panic(err)
 	}
 
 	object.size = pic.Bounds()
 	object.loc = loc
-	object.bounds = getBounds(object.loc, object.size)
+	object.bounds = utils.GetBounds(object.loc, object.size)
 	object.sprite = pixel.NewSprite(pic, object.size)
 	object.blocking = blocking
 

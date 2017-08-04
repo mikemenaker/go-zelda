@@ -4,6 +4,7 @@ import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
 	"image/color"
+	"go-zelda/elements"
 )
 
 func run() {
@@ -17,26 +18,26 @@ func run() {
 		panic(err)
 	}
 
-	intro := NewIntro()
-	link := NewLink()
-	world := createWorld(OVERWORLD)
+	intro := elements.NewIntro()
+	link := elements.NewLink()
+	world := elements.CreateWorld(elements.OVERWORLD)
 
 	for !win.Closed() {
-		if intro.isActive {
+		if intro.IsActive {
 			win.Clear(color.Black)
-			intro.update(win)
-			intro.draw(win)
+			intro.Update(win)
+			intro.Draw(win)
 		} else {
 			world.UpdateAndDraw(win)
-			worldType := link.update(win, world)
+			worldType := link.Update(win, world)
 
-			if worldType != CURRENT {
-				world = createWorld(worldType)
-				if world.linkPos != pixel.V(0, 0) {
-					link.pos = world.linkPos
+			if worldType != elements.CURRENT {
+				world = elements.CreateWorld(worldType)
+				if world.LinkPos != pixel.V(0, 0) {
+					link.Pos = world.LinkPos
 				}
 			} else {
-				link.draw(win)
+				link.Draw(win)
 			}
 		}
 

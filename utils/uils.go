@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"encoding/csv"
@@ -10,16 +10,16 @@ import (
 	"strconv"
 )
 
-func getBounds(location pixel.Vec, size pixel.Rect) pixel.Rect {
+func GetBounds(location pixel.Vec, size pixel.Rect) pixel.Rect {
 	return pixel.R(location.X-size.Max.X, location.Y-size.Max.Y, location.X+size.Max.X, location.Y+size.Max.Y)
 }
 
-func overlap(obj1 pixel.Rect, obj2 pixel.Rect) bool {
+func Overlap(obj1 pixel.Rect, obj2 pixel.Rect) bool {
 	empty := pixel.R(0, 0, 0, 0)
 	return obj1.Intersect(obj2) != empty
 }
 
-func loadPicture(path string) (pixel.Picture, error) {
+func LoadPicture(path string) (pixel.Picture, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func loadPicture(path string) (pixel.Picture, error) {
 	return pixel.PictureDataFromImage(img), nil
 }
 
-func loadAnimationSheet(sheetPath, descPath string) (sheet pixel.Picture, anims map[string][]pixel.Rect, err error) {
+func LoadAnimationSheet(sheetPath, descPath string) (sheet pixel.Picture, anims map[string][]pixel.Rect, err error) {
 	// total hack, nicely format the error at the end, so I don't have to type it every time
 	defer func() {
 		if err != nil {

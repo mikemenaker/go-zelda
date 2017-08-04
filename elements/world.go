@@ -1,4 +1,4 @@
-package main
+package elements
 
 import (
 	"github.com/faiface/pixel"
@@ -12,7 +12,7 @@ type World struct {
 	enemies []*Enemy
 	doors   []*Door
 	brColor color.Color
-	linkPos pixel.Vec
+	LinkPos pixel.Vec
 }
 
 const (
@@ -22,7 +22,7 @@ const (
 	CASTLE
 )
 
-func createWorld(worldType int) *World {
+func CreateWorld(worldType int) *World {
 	if worldType == OVERWORLD {
 		return createOverworld()
 	} else if worldType == CAVE {
@@ -63,7 +63,7 @@ func createOverworld() *World {
 
 	world.brColor = color.RGBA{72, 152, 72, 1}
 
-	world.linkPos = pixel.V(0, 0)
+	world.LinkPos = pixel.V(0, 0)
 	return world
 }
 
@@ -119,8 +119,9 @@ func createCave() *World {
 	var doors []*Door
 	doors = append(doors, NewDoor("images/cave/exit.png", pixel.V(515, 710), OVERWORLD))
 	world.doors = doors
-	world.brColor = color.Black
-	world.linkPos = pixel.V(0, 0)
+
+	world.brColor = color.RGBA{40, 32, 32, 1}
+	world.LinkPos = pixel.V(0, 0)
 	return world
 }
 
@@ -137,7 +138,7 @@ func createCastle() *World {
 
 	world.brColor = colornames.Skyblue
 
-	world.linkPos = pixel.V(0, 0)
+	world.LinkPos = pixel.V(0, 0)
 	return world
 }
 
