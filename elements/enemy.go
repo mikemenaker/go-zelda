@@ -3,9 +3,9 @@ package elements
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"go-zelda/utils"
 	"math/rand"
 	"time"
-	"go-zelda/utils"
 )
 
 type Enemy struct {
@@ -33,15 +33,16 @@ const (
 	RIGHT
 )
 
-func NewEnemy(loc pixel.Vec) *Enemy {
+func NewEnemy(loc pixel.Vec, name string) *Enemy {
 	enemy := new(Enemy)
 
-	sheet, anims, err := utils.LoadAnimationSheet("images/sprites/greensoldier.png", "images/sprites/greensoldier_sheet.csv")
+	sheet, anims, err := utils.LoadAnimationSheet("images/sprites/enemies/"+name+"/"+name+".png",
+		"images/sprites/enemies/"+name+"/"+name+"_sheet.csv")
 	if err != nil {
 		panic(err)
 	}
 
-	dying_sheet, dying_anims, err := utils.LoadAnimationSheet("images/sprites/dying.png", "images/sprites/dying_sheet.csv")
+	dying_sheet, dying_anims, err := utils.LoadAnimationSheet("images/sprites/enemies/dying/dying.png", "images/sprites/enemies/dying/dying_sheet.csv")
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +56,13 @@ func NewEnemy(loc pixel.Vec) *Enemy {
 	enemy.tick = 0
 	enemy.animCount = 0
 
-	enemy.size = anims["down"][0]
+	for anim := range anims {
+		if anims[anim][0].Min.Y == 0 && anims[anim][0].Min.X == 0 {
+			enemy.size = anims[anim][0]
+			break
+		}
+	}
+
 	enemy.loc = loc
 	enemy.direction = DOWN
 

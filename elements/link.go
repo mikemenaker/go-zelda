@@ -21,7 +21,7 @@ type Link struct {
 func NewLink() *Link {
 	link := new(Link)
 
-	sheet, anims, err := utils.LoadAnimationSheet("images/sprites/link.png", "images/sprites/sheet.csv")
+	sheet, anims, err := utils.LoadAnimationSheet("images/sprites/link/link.png", "images/sprites/link/sheet.csv")
 	if err != nil {
 		panic(err)
 	}

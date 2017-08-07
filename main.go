@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"image/color"
 	"go-zelda/elements"
+	"image/color"
 )
 
 func run() {

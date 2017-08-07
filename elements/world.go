@@ -53,8 +53,8 @@ func createOverworld() *World {
 	world.objects = objects
 
 	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
+	enemies = append(enemies, NewEnemy(pixel.V(440, 384), "greensoldier"))
+	enemies = append(enemies, NewEnemy(pixel.V(680, 600), "greensoldier"))
 	world.enemies = enemies
 
 	var doors []*Door
@@ -113,8 +113,10 @@ func createCave() *World {
 	objects = append(objects, NewObject("images/cave/rock.png", pixel.V(550, 550), true))
 	world.objects = objects
 	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
+	enemies = append(enemies, NewEnemy(pixel.V(500, 500), "skeleton"))
+	enemies = append(enemies, NewEnemy(pixel.V(550, 250), "skeleton"))
+	enemies = append(enemies, NewEnemy(pixel.V(600, 500), "skeleton"))
+	enemies = append(enemies, NewEnemy(pixel.V(650, 500), "skeleton"))
 	world.enemies = enemies
 	var doors []*Door
 	doors = append(doors, NewDoor("images/cave/exit.png", pixel.V(515, 710), OVERWORLD))
@@ -132,8 +134,8 @@ func createCastle() *World {
 	world.objects = objects
 
 	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
+	enemies = append(enemies, NewEnemy(pixel.V(440, 384), "greensoldier"))
+	enemies = append(enemies, NewEnemy(pixel.V(680, 600), "greensoldier"))
 	world.enemies = enemies
 
 	world.brColor = colornames.Skyblue
