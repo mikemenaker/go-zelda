@@ -1,4 +1,4 @@
-package main
+package elements
 
 import (
 	"github.com/faiface/pixel"
@@ -12,7 +12,7 @@ type World struct {
 	enemies []*Enemy
 	doors   []*Door
 	brColor color.Color
-	linkPos pixel.Vec
+	LinkPos pixel.Vec
 }
 
 const (
@@ -22,7 +22,7 @@ const (
 	CASTLE
 )
 
-func createWorld(worldType int) *World {
+func CreateWorld(worldType int) *World {
 	if worldType == OVERWORLD {
 		return createOverworld()
 	} else if worldType == CAVE {
@@ -53,8 +53,8 @@ func createOverworld() *World {
 	world.objects = objects
 
 	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
+	enemies = append(enemies, NewEnemy(pixel.V(440, 384), "greensoldier"))
+	enemies = append(enemies, NewEnemy(pixel.V(680, 600), "greensoldier"))
 	world.enemies = enemies
 
 	var doors []*Door
@@ -63,7 +63,7 @@ func createOverworld() *World {
 
 	world.brColor = color.RGBA{72, 152, 72, 1}
 
-	world.linkPos = pixel.V(0, 0)
+	world.LinkPos = pixel.V(0, 0)
 	return world
 }
 
@@ -113,14 +113,17 @@ func createCave() *World {
 	objects = append(objects, NewObject("images/cave/rock.png", pixel.V(550, 550), true))
 	world.objects = objects
 	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
+	enemies = append(enemies, NewEnemy(pixel.V(500, 500), "skeleton"))
+	enemies = append(enemies, NewEnemy(pixel.V(550, 250), "skeleton"))
+	enemies = append(enemies, NewEnemy(pixel.V(600, 500), "skeleton"))
+	enemies = append(enemies, NewEnemy(pixel.V(650, 500), "skeleton"))
 	world.enemies = enemies
 	var doors []*Door
 	doors = append(doors, NewDoor("images/cave/exit.png", pixel.V(515, 710), OVERWORLD))
 	world.doors = doors
-	world.brColor = color.Black
-	world.linkPos = pixel.V(0, 0)
+
+	world.brColor = color.RGBA{40, 32, 32, 1}
+	world.LinkPos = pixel.V(0, 0)
 	return world
 }
 
@@ -131,13 +134,13 @@ func createCastle() *World {
 	world.objects = objects
 
 	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384)))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600)))
+	enemies = append(enemies, NewEnemy(pixel.V(440, 384), "greensoldier"))
+	enemies = append(enemies, NewEnemy(pixel.V(680, 600), "greensoldier"))
 	world.enemies = enemies
 
 	world.brColor = colornames.Skyblue
 
-	world.linkPos = pixel.V(0, 0)
+	world.LinkPos = pixel.V(0, 0)
 	return world
 }
 

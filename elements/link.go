@@ -1,16 +1,17 @@
-package main
+package elements
 
 import (
 	_ "image/png"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"go-zelda/utils"
 )
 
 type Link struct {
 	sheet         pixel.Picture
 	anims         map[string][]pixel.Rect
-	pos           pixel.Vec
+	Pos           pixel.Vec
 	currFrame     pixel.Rect
 	lastFrameType int
 	frameCount    int
@@ -20,14 +21,14 @@ type Link struct {
 func NewLink() *Link {
 	link := new(Link)
 
-	sheet, anims, err := loadAnimationSheet("images/sprites/link.png", "images/sprites/sheet.csv")
+	sheet, anims, err := utils.LoadAnimationSheet("images/sprites/link/link.png", "images/sprites/link/sheet.csv")
 	if err != nil {
 		panic(err)
 	}
 	link.sheet = sheet
 	link.anims = anims
 
-	link.pos = pixel.V(130, 130)
+	link.Pos = pixel.V(130, 130)
 	link.currFrame = pixel.R(0, 0, 0, 0)
 
 	link.frameCount = 0
@@ -101,7 +102,7 @@ func (link *Link) getFrameKey(frameType int) string {
 	return "link_stand"
 }
 
-func (link *Link) update(win *pixelgl.Window, world *World) int {
+func (link *Link) Update(win *pixelgl.Window, world *World) int {
 	frameType := STAND
 
 	// don't move while attacking
@@ -115,7 +116,7 @@ func (link *Link) update(win *pixelgl.Window, world *World) int {
 			return worldType
 		}
 
-		link.pos = link.handleCollisions(newPos, world, frameType, bouncePos)
+		link.Pos = link.handleCollisions(newPos, world, frameType, bouncePos)
 	} else {
 		frameType = link.lastFrameType
 	}
@@ -134,13 +135,13 @@ func (link *Link) handleCollisions(newPos pixel.Vec, world *World, frameType int
 		}
 	}
 
-	return link.pos
+	return link.Pos
 }
 
 func (link *Link) handleDoors(newPos pixel.Vec, doors []*Door) int {
-	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
+	linkBounds := utils.GetBounds(newPos, pixel.R(0, 0, 30, 30))
 	for _, d := range doors {
-		if overlap(d.bounds, linkBounds) {
+		if utils.Overlap(d.bounds, linkBounds) {
 			return d.target
 		}
 	}
@@ -149,15 +150,15 @@ func (link *Link) handleDoors(newPos pixel.Vec, doors []*Door) int {
 }
 
 func (link *Link) handleObstacleCollisions(newPos pixel.Vec, objects []*Object) bool {
-	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
+	linkBounds := utils.GetBounds(newPos, pixel.R(0, 0, 30, 30))
 	for _, o := range objects {
-		if o.blocking && overlap(o.bounds, linkBounds) {
+		if o.blocking && utils.Overlap(o.bounds, linkBounds) {
 			return false
 		}
 	}
 
 	screenBounds := pixel.R(60, 60, 1024-60, 768-60)
-	if !overlap(linkBounds, screenBounds) {
+	if !utils.Overlap(linkBounds, screenBounds) {
 		return false
 	}
 
@@ -165,19 +166,19 @@ func (link *Link) handleObstacleCollisions(newPos pixel.Vec, objects []*Object) 
 }
 
 func (link *Link) handleEnemyCollisions(newPos pixel.Vec, enemies []*Enemy, frameType int, bouncePos pixel.Vec) (bool, pixel.Vec) {
-	linkBounds := getBounds(newPos, pixel.R(0, 0, 30, 30))
-	linkAttackBounds := getBounds(newPos, pixel.R(-15, -15, 45, 45))
+	linkBounds := utils.GetBounds(newPos, pixel.R(0, 0, 30, 30))
+	linkAttackBounds := utils.GetBounds(newPos, pixel.R(-15, -15, 45, 45))
 
 	for _, e := range enemies {
 		if !e.isDead && !e.isDying {
-			enemyBounds := getBounds(e.loc, e.size)
-			if link.isAttacking(frameType) && overlap(enemyBounds, linkAttackBounds) {
+			enemyBounds := utils.GetBounds(e.loc, e.size)
+			if link.isAttacking(frameType) && utils.Overlap(enemyBounds, linkAttackBounds) {
 				e.frameCount = 0
 				e.tick = 0
 				e.animCount = 0
 				e.isDying = true
 				return false, newPos
-			} else if overlap(enemyBounds, linkBounds) {
+			} else if utils.Overlap(enemyBounds, linkBounds) {
 				return true, bouncePos
 			}
 		}
@@ -188,8 +189,8 @@ func (link *Link) handleEnemyCollisions(newPos pixel.Vec, enemies []*Enemy, fram
 
 func (link *Link) trackMovement(win *pixelgl.Window) (pixel.Vec, pixel.Vec, int) {
 	relPos := pixel.ZV
-	newPos := link.pos
-	bouncePos := link.pos
+	newPos := link.Pos
+	bouncePos := link.Pos
 	frameType := STAND
 	actionFrameType := ATTACK_UP
 
@@ -235,7 +236,7 @@ func (link *Link) isAttacking(frameType int) bool {
 	return frameType == ATTACK_UP || frameType == ATTACK_DOWN || frameType == ATTACK_LEFT || frameType == ATTACK_RIGHT
 }
 
-func (link *Link) draw(win *pixelgl.Window) {
+func (link *Link) Draw(win *pixelgl.Window) {
 	sprite := pixel.NewSprite(link.sheet, link.currFrame)
-	sprite.Draw(win, pixel.IM.Scaled(pixel.ZV, 2.5).Moved(link.pos))
+	sprite.Draw(win, pixel.IM.Scaled(pixel.ZV, 2.5).Moved(link.Pos))
 }

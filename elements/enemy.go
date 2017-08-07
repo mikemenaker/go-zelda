@@ -1,8 +1,9 @@
-package main
+package elements
 
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
+	"go-zelda/utils"
 	"math/rand"
 	"time"
 )
@@ -32,15 +33,16 @@ const (
 	RIGHT
 )
 
-func NewEnemy(loc pixel.Vec) *Enemy {
+func NewEnemy(loc pixel.Vec, name string) *Enemy {
 	enemy := new(Enemy)
 
-	sheet, anims, err := loadAnimationSheet("images/sprites/greensoldier.png", "images/sprites/greensoldier_sheet.csv")
+	sheet, anims, err := utils.LoadAnimationSheet("images/sprites/enemies/"+name+"/"+name+".png",
+		"images/sprites/enemies/"+name+"/"+name+"_sheet.csv")
 	if err != nil {
 		panic(err)
 	}
 
-	dying_sheet, dying_anims, err := loadAnimationSheet("images/sprites/dying.png", "images/sprites/dying_sheet.csv")
+	dying_sheet, dying_anims, err := utils.LoadAnimationSheet("images/sprites/enemies/dying/dying.png", "images/sprites/enemies/dying/dying_sheet.csv")
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +56,13 @@ func NewEnemy(loc pixel.Vec) *Enemy {
 	enemy.tick = 0
 	enemy.animCount = 0
 
-	enemy.size = anims["down"][0]
+	for anim := range anims {
+		if anims[anim][0].Min.Y == 0 && anims[anim][0].Min.X == 0 {
+			enemy.size = anims[anim][0]
+			break
+		}
+	}
+
 	enemy.loc = loc
 	enemy.direction = DOWN
 
@@ -138,10 +146,10 @@ func (enemy *Enemy) update(win *pixelgl.Window, objects []*Object, enemies []*En
 		}
 
 		overlapped := false
-		bounds := getBounds(newPos, enemy.size)
+		bounds := utils.GetBounds(newPos, enemy.size)
 
 		for _, o := range objects {
-			if o.blocking && overlap(o.bounds, bounds) {
+			if o.blocking && utils.Overlap(o.bounds, bounds) {
 				overlapped = true
 				break
 			}
@@ -149,8 +157,8 @@ func (enemy *Enemy) update(win *pixelgl.Window, objects []*Object, enemies []*En
 
 		for _, e := range enemies {
 			if enemy.loc != e.loc {
-				enemyBounds := getBounds(e.loc, e.size)
-				if overlap(enemyBounds, bounds) {
+				enemyBounds := utils.GetBounds(e.loc, e.size)
+				if utils.Overlap(enemyBounds, bounds) {
 					overlapped = true
 					break
 				}
@@ -158,7 +166,7 @@ func (enemy *Enemy) update(win *pixelgl.Window, objects []*Object, enemies []*En
 		}
 
 		screenBounds := pixel.R(enemy.size.Max.X*2, enemy.size.Max.Y*2, 1024-(enemy.size.Max.X*2), 768-(enemy.size.Max.Y*2))
-		if !overlapped && overlap(bounds, screenBounds) {
+		if !overlapped && utils.Overlap(bounds, screenBounds) {
 			enemy.loc = newPos
 			enemy.setCurrentFrame()
 		} else {
