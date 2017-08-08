@@ -1,0 +1,17 @@
+object,images/overworld/tree.png,200,384,true
+object,images/overworld/tree.png,600,384,true
+object,images/overworld/grass1.png,220,670,false
+object,images/overworld/grass1.png,245,670,false
+object,images/overworld/grass1.png,790,220,false
+object,images/overworld/grass1.png,790,245,false
+object,images/overworld/grass2.png,220,220,false
+object,images/overworld/grass2.png,220,245,false
+object,images/overworld/grass2.png,920,620,false
+object,images/overworld/grass2.png,945,620,false
+object,images/overworld/dirt_patch.png,775,520,false
+object,images/overworld/dirt_patch.png,380,150,false
+enemy,greensoldier,440,384
+enemy,greensoldier,680,600
+door,images/overworld/cave_entrance.png,390,670,3
+bgColor,72,152,72,1
+linkPos,0,0
