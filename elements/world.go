@@ -1,17 +1,21 @@
 package elements
 
 import (
+	"encoding/csv"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 	"image/color"
+	"io"
+	"os"
+	"strconv"
+	"fmt"
 )
 
 type World struct {
 	objects []*Object
 	enemies []*Enemy
 	doors   []*Door
-	brColor color.Color
+	bgColor color.Color
 	LinkPos pixel.Vec
 }
 
@@ -24,128 +28,18 @@ const (
 
 func CreateWorld(worldType int) *World {
 	if worldType == OVERWORLD {
-		return createOverworld()
+		return readWorld("elements/overworld.csv")
 	} else if worldType == CAVE {
-		return createCave()
+		return readWorld("elements/cave.csv")
 	} else if worldType == CASTLE {
-		return createCastle()
+		return readWorld("elements/castle.csv")
 	}
 
 	return new(World)
 }
 
-func createOverworld() *World {
-	world := new(World)
-	var objects []*Object
-	objects = append(objects, NewObject("images/overworld/tree.png", pixel.V(200, 384), true))
-	objects = append(objects, NewObject("images/overworld/tree.png", pixel.V(600, 384), true))
-
-	objects = append(objects, NewObject("images/overworld/grass1.png", pixel.V(220, 670), false))
-	objects = append(objects, NewObject("images/overworld/grass1.png", pixel.V(245, 670), false))
-	objects = append(objects, NewObject("images/overworld/grass1.png", pixel.V(790, 220), false))
-	objects = append(objects, NewObject("images/overworld/grass1.png", pixel.V(790, 245), false))
-	objects = append(objects, NewObject("images/overworld/grass2.png", pixel.V(220, 220), false))
-	objects = append(objects, NewObject("images/overworld/grass2.png", pixel.V(220, 245), false))
-	objects = append(objects, NewObject("images/overworld/grass2.png", pixel.V(920, 620), false))
-	objects = append(objects, NewObject("images/overworld/grass2.png", pixel.V(945, 620), false))
-	objects = append(objects, NewObject("images/overworld/dirt_patch.png", pixel.V(775, 520), false))
-	objects = append(objects, NewObject("images/overworld/dirt_patch.png", pixel.V(380, 150), false))
-	world.objects = objects
-
-	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384), "greensoldier"))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600), "greensoldier"))
-	world.enemies = enemies
-
-	var doors []*Door
-	doors = append(doors, NewDoor("images/overworld/cave_entrance.png", pixel.V(390, 670), CAVE))
-	world.doors = doors
-
-	world.brColor = color.RGBA{72, 152, 72, 1}
-
-	world.LinkPos = pixel.V(0, 0)
-	return world
-}
-
-func createCave() *World {
-	world := new(World)
-	var objects []*Object
-	objects = append(objects, NewObject("images/cave/wall_right.png", pixel.V(980, 0), true))
-	objects = append(objects, NewObject("images/cave/wall_right.png", pixel.V(980, 124), true))
-	objects = append(objects, NewObject("images/cave/wall_right.png", pixel.V(980, 248), true))
-	objects = append(objects, NewObject("images/cave/wall_right.png", pixel.V(980, 372), true))
-	objects = append(objects, NewObject("images/cave/wall_right.png", pixel.V(980, 496), true))
-	objects = append(objects, NewObject("images/cave/wall_right.png", pixel.V(980, 620), true))
-	objects = append(objects, NewObject("images/cave/wall_left.png", pixel.V(24, 0), true))
-	objects = append(objects, NewObject("images/cave/wall_left.png", pixel.V(24, 124), true))
-	objects = append(objects, NewObject("images/cave/wall_left.png", pixel.V(24, 248), true))
-	objects = append(objects, NewObject("images/cave/wall_left.png", pixel.V(24, 372), true))
-	objects = append(objects, NewObject("images/cave/wall_left.png", pixel.V(24, 496), true))
-	objects = append(objects, NewObject("images/cave/wall_left.png", pixel.V(24, 620), true))
-	objects = append(objects, NewObject("images/cave/wall_top.png", pixel.V(0, 730), true))
-	objects = append(objects, NewObject("images/cave/wall_top.png", pixel.V(132, 730), true))
-	objects = append(objects, NewObject("images/cave/wall_top.png", pixel.V(264, 730), true))
-	objects = append(objects, NewObject("images/cave/wall_top.png", pixel.V(394, 730), true))
-	objects = append(objects, NewObject("images/cave/wall_top.png", pixel.V(526, 730), true))
-	objects = append(objects, NewObject("images/cave/wall_top.png", pixel.V(658, 730), true))
-	objects = append(objects, NewObject("images/cave/wall_top.png", pixel.V(790, 730), true))
-	objects = append(objects, NewObject("images/cave/wall_top.png", pixel.V(922, 730), true))
-	objects = append(objects, NewObject("images/cave/wall_bottom.png", pixel.V(0, 0), true))
-	objects = append(objects, NewObject("images/cave/wall_bottom.png", pixel.V(132, 24), true))
-	objects = append(objects, NewObject("images/cave/wall_bottom.png", pixel.V(264, 24), true))
-	objects = append(objects, NewObject("images/cave/wall_bottom.png", pixel.V(394, 24), true))
-	objects = append(objects, NewObject("images/cave/wall_bottom.png", pixel.V(526, 24), true))
-	objects = append(objects, NewObject("images/cave/wall_bottom.png", pixel.V(658, 24), true))
-	objects = append(objects, NewObject("images/cave/wall_bottom.png", pixel.V(790, 24), true))
-	objects = append(objects, NewObject("images/cave/wall_bottom.png", pixel.V(922, 24), true))
-	objects = append(objects, NewObject("images/cave/top_left.png", pixel.V(24, 730), true))
-	objects = append(objects, NewObject("images/cave/top_right.png", pixel.V(972, 730), true))
-	objects = append(objects, NewObject("images/cave/bottom_left.png", pixel.V(24, 24), true))
-	objects = append(objects, NewObject("images/cave/bottom_right.png", pixel.V(972, 24), true))
-	objects = append(objects, NewObject("images/cave/floor_tile.png", pixel.V(220, 570), false))
-	objects = append(objects, NewObject("images/cave/floor_tile.png", pixel.V(245, 570), false))
-	objects = append(objects, NewObject("images/cave/floor_tile.png", pixel.V(790, 220), false))
-	objects = append(objects, NewObject("images/cave/floor_tile.png", pixel.V(790, 245), false))
-	objects = append(objects, NewObject("images/cave/floor_tile.png", pixel.V(220, 220), false))
-	objects = append(objects, NewObject("images/cave/floor_tile.png", pixel.V(220, 245), false))
-	objects = append(objects, NewObject("images/cave/floor_tile.png", pixel.V(720, 620), false))
-	objects = append(objects, NewObject("images/cave/floor_tile.png", pixel.V(745, 620), false))
-	objects = append(objects, NewObject("images/cave/rock.png", pixel.V(550, 550), true))
-	world.objects = objects
-	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(500, 500), "skeleton"))
-	enemies = append(enemies, NewEnemy(pixel.V(550, 250), "skeleton"))
-	enemies = append(enemies, NewEnemy(pixel.V(600, 500), "skeleton"))
-	enemies = append(enemies, NewEnemy(pixel.V(650, 500), "skeleton"))
-	world.enemies = enemies
-	var doors []*Door
-	doors = append(doors, NewDoor("images/cave/exit.png", pixel.V(515, 710), OVERWORLD))
-	world.doors = doors
-
-	world.brColor = color.RGBA{40, 32, 32, 1}
-	world.LinkPos = pixel.V(0, 0)
-	return world
-}
-
-func createCastle() *World {
-	world := new(World)
-	var objects []*Object
-	objects = append(objects, NewObject("images/overworld/tree.png", pixel.V(200, 384), true))
-	world.objects = objects
-
-	var enemies []*Enemy
-	enemies = append(enemies, NewEnemy(pixel.V(440, 384), "greensoldier"))
-	enemies = append(enemies, NewEnemy(pixel.V(680, 600), "greensoldier"))
-	world.enemies = enemies
-
-	world.brColor = colornames.Skyblue
-
-	world.LinkPos = pixel.V(0, 0)
-	return world
-}
-
 func (world *World) UpdateAndDraw(win *pixelgl.Window) {
-	win.Clear(world.brColor)
+	win.Clear(world.bgColor)
 
 	for _, o := range world.objects {
 		o.draw(win)
@@ -161,5 +55,64 @@ func (world *World) UpdateAndDraw(win *pixelgl.Window) {
 			e.draw(win)
 		}
 	}
+
+}
+
+func readWorld(path string) *World {
+	world := new(World)
+	var objects []*Object
+	var enemies []*Enemy
+	var doors []*Door
+	world.LinkPos = pixel.V(0, 0)
+
+	descFile, err := os.Open(path)
+	if err != nil {
+		return nil
+	}
+	defer descFile.Close()
+
+	desc := csv.NewReader(descFile)
+	desc.FieldsPerRecord = -1
+	for {
+		element, err := desc.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil
+		}
+
+		switch element[0] {
+		case "object":
+			x, _ := strconv.Atoi(element[2])
+			y, _ := strconv.Atoi(element[3])
+			blocking, _ := strconv.ParseBool(element[4])
+			objects = append(objects, NewObject(element[1], pixel.V(float64(x), float64(y)), blocking))
+			fmt.Println(pixel.V(float64(x), float64(y)))
+		case "enemy":
+			x, _ := strconv.Atoi(element[2])
+			y, _ := strconv.Atoi(element[3])
+			enemies = append(enemies, NewEnemy(pixel.V(float64(x), float64(y)), element[1]))
+		case "door":
+			x, _ := strconv.Atoi(element[2])
+			y, _ := strconv.Atoi(element[3])
+			target, _ := strconv.Atoi(element[4])
+			doors = append(doors, NewDoor(element[1], pixel.V(float64(x), float64(y)), target))
+		case "linkPos":
+			x, _ := strconv.Atoi(element[1])
+			y, _ := strconv.Atoi(element[2])
+			world.LinkPos = pixel.V(float64(x), float64(y))
+		case "bgColor":
+			r, _ := strconv.Atoi(element[1])
+			g, _ := strconv.Atoi(element[2])
+			b, _ := strconv.Atoi(element[3])
+			world.bgColor = color.RGBA{uint8(r), uint8(g), uint8(b), 1}
+		}
+	}
+
+	world.objects = objects
+	world.enemies = enemies
+	world.doors = doors
+	return world
 
 }
