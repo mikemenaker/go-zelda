@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"strconv"
-	"fmt"
 )
 
 type World struct {
@@ -88,7 +87,6 @@ func readWorld(path string) *World {
 			y, _ := strconv.Atoi(element[3])
 			blocking, _ := strconv.ParseBool(element[4])
 			objects = append(objects, NewObject(element[1], pixel.V(float64(x), float64(y)), blocking))
-			fmt.Println(pixel.V(float64(x), float64(y)))
 		case "enemy":
 			x, _ := strconv.Atoi(element[2])
 			y, _ := strconv.Atoi(element[3])
