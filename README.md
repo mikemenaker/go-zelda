@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/faiface/pixel)](https://goreportcard.com/report/github.com/faiface/pixel)
 # go-zelda
 
 Zelda clone using faiface/pixel
